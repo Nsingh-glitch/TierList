@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Custom Tier List</title>
+<style>
+*{box-sizing:border-box} :root{color-scheme:dark;--bg:#101318;--surface:#191e26;--surface-2:#222936;--border:#354052;--text:#f3f6fb;--muted:#9ba8ba;--accent:#72a7ff}
+body.light{color-scheme:light;--bg:#f4f6f9;--surface:#fff;--surface-2:#e9eef5;--border:#cbd5e1;--text:#172033;--muted:#607086;--accent:#2563eb}
+body{margin:0;font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;background:var(--bg);color:var(--text);transition:background .2s,color .2s}
+header{padding:18px max(20px,calc((100% - 1200px)/2));border-bottom:1px solid var(--border);display:flex;gap:9px;align-items:center;flex-wrap:wrap;background:var(--surface)}
+h1{margin:0 auto 0 0;font-size:22px;letter-spacing:-.02em}button,input{font:inherit}button{border:1px solid var(--border);border-radius:8px;padding:9px 13px;background:var(--surface-2);color:var(--text);cursor:pointer;transition:transform .15s,background .15s,border-color .15s}button:hover{background:var(--accent);border-color:var(--accent);color:#fff;transform:translateY(-1px)}
+#app{max-width:1200px;margin:auto;padding:24px 20px}.toolbar,.item-input{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.toolbar{margin-bottom:16px}.toolbar input{flex:1;min-width:220px}
+input{background:var(--surface);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:9px 11px;outline:none}input:focus{border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 22%,transparent)}
+.item-input{padding:14px;background:var(--surface);border:1px solid var(--border);border-radius:10px}.item-input input[type="file"]{max-width:235px}.hint{color:var(--muted);font-size:13px;margin:9px 0 17px}.status{color:var(--muted);font-size:13px;margin-left:auto}
+.tier{display:grid;grid-template-columns:105px 1fr;min-height:92px;border:1px solid var(--border);margin-bottom:8px;border-radius:10px;overflow:hidden;background:var(--surface);box-shadow:0 2px 9px #00000012;animation:rise .22s ease both}.label{display:flex;align-items:center;justify-content:center;font-weight:800;font-size:22px;cursor:pointer;user-select:none;transition:filter .15s}.label:hover{filter:brightness(1.1)}
+.items{display:flex;align-items:center;gap:8px;padding:8px;flex-wrap:wrap;min-height:92px;transition:background .15s ease}.card{width:92px;height:76px;border-radius:8px;overflow:hidden;background:var(--surface-2);position:relative;cursor:grab;border:1px solid var(--border);transition:transform 180ms ease,opacity 180ms ease,box-shadow 180ms ease}.card:hover{transform:translateY(-2px);box-shadow:0 5px 14px #0003}.card.drop-animation{animation:cardDrop 220ms cubic-bezier(.2,.8,.2,1)}.card.square{width:76px;height:76px}.card.landscape{width:110px;height:76px}.card.portrait{width:65px;height:90px}.card.circle{width:76px;height:76px;border-radius:50%}.card.circle img{border-radius:50%}.card img{width:100%;height:100%;object-fit:cover;display:block}.card.no-image::before{content:"No image";position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:12px}.card span{position:absolute;left:0;right:0;bottom:0;padding:5px;font-size:12px;background:#000b;color:#fff;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.card-remove{position:absolute;top:4px;right:4px;width:20px;height:20px;padding:0;border:0;border-radius:50%;background:#0009;color:#fff;font-size:15px;line-height:18px;opacity:0;transform:scale(.9);transition:opacity .15s,transform .15s;z-index:2}.card:hover .card-remove,.card:focus-within .card-remove{opacity:1;transform:scale(1)}.card-remove:hover,.card-remove:focus-visible{background:#dc2626;color:#fff;transform:scale(1.08);outline:none}
+.pool{margin-top:18px;border:1px dashed var(--border);border-radius:10px;min-height:125px;padding:12px;display:flex;gap:8px;flex-wrap:wrap;background:color-mix(in srgb,var(--surface) 65%,transparent);transition:background .15s ease}.drop-target{background:color-mix(in srgb,var(--accent) 8%,var(--surface))}
+.settings{display:none;margin:0 0 18px;padding:14px;background:var(--surface);border:1px solid var(--border);border-radius:10px}.settings.open{display:block}.tier-setting{display:grid;grid-template-columns:1fr 58px 34px;gap:8px;margin:7px 0}.tier-setting input[type="color"]{width:58px;height:40px;padding:3px}.remove-tier{padding:4px 9px}.setting-group{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:12px}.setting-group strong{width:100%}.setting-group input[type="file"]{max-width:240px}.empty{color:var(--muted);padding:15px}.mobile-menu-button,.mobile-menu{display:none}
+#toastContainer{position:fixed;right:20px;bottom:20px;z-index:99999;display:flex;flex-direction:column;gap:10px;pointer-events:none}.toast{min-width:280px;max-width:380px;padding:13px 16px;border-radius:10px;background:#dc2626;color:#fff;box-shadow:0 8px 25px #0005;font-size:14px;font-weight:500;animation:toastIn .2s ease}.toast.hide{animation:toastOut .2s ease forwards}
+.sidebar{position:fixed;inset:0 auto 0 0;width:220px;padding:22px 14px;background:var(--surface);border-right:1px solid var(--border);z-index:900;display:flex;flex-direction:column;gap:8px;transition:transform .2s ease,opacity .2s ease}.sidebar-heading{padding:0 10px 10px;color:var(--muted);font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.08em}.sidebar button{width:100%;text-align:left}.sidebar-toggle{display:block;width:38px;height:38px;padding:0;text-align:center}header{margin-left:220px;padding-left:24px;padding-right:24px}#app{margin-left:220px}.sidebar-close{display:none}body.sidebar-collapsed .sidebar{transform:translateX(-100%);opacity:0;pointer-events:none}body.sidebar-collapsed header,body.sidebar-collapsed #app{margin-left:0}
+.icon-button{display:inline-flex;align-items:center;justify-content:center;width:38px;height:38px;padding:0}.icon-button svg{width:18px;height:18px;stroke-width:1.8}.sidebar button{display:flex;align-items:center;gap:10px}.sidebar button svg{width:17px;height:17px;stroke-width:1.8}.sidebar-close{justify-content:center}.sidebar-close svg{width:19px;height:19px}@keyframes rise{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}@keyframes cardDrop{0%{transform:scale(.94);opacity:.65}60%{transform:scale(1.03);opacity:1}100%{transform:scale(1);opacity:1}}@keyframes toastIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}@keyframes toastOut{from{opacity:1;transform:none}to{opacity:0;transform:translateY(10px)}}.presentation-mode header,.presentation-mode .sidebar,.presentation-mode .toolbar,.presentation-mode .settings,.presentation-mode .item-input,.presentation-mode .hint{display:none!important}.presentation-mode #app{max-width:1400px;margin-left:auto;padding:30px}.presentation-mode .tier{min-height:110px;margin-bottom:10px}.presentation-mode .label{font-size:28px}.presentation-mode .card{width:120px;height:95px}.presentation-mode .pool{margin-top:20px}.presentation-mode .empty{display:none}.presentation-mode .card.square,.presentation-mode .card.circle{width:95px;height:95px}.presentation-mode .card.portrait{width:78px;height:110px}.presentation-exit{position:fixed;top:15px;right:15px;z-index:9999;opacity:.7}.board-background-image{background-position:center;background-size:cover;background-attachment:fixed}.mobile-menu-button{border:0}@media(max-width:600px){header{margin-left:0;padding:15px 14px;position:relative}header>button{display:none}header .sidebar-toggle,header #themeButton,header #downloadButton{display:flex}.sidebar{width:250px;box-shadow:10px 0 30px #0004}.sidebar.open{transform:none;opacity:1;pointer-events:auto}.sidebar-close{display:flex!important;width:38px!important;margin-left:auto;text-align:center!important;padding:5px 9px}#app{margin-left:0;padding:12px 10px}.tier{grid-template-columns:58px 1fr}.label{font-size:16px}.items{gap:5px;padding:6px}.card{width:70px;height:62px}.card.square,.card.circle{width:62px;height:62px}.card.portrait{width:54px;height:76px}.item-input{flex-direction:column;align-items:stretch}.item-input input{width:100%;min-width:0!important}.item-input button{width:100%}.status{width:100%;margin-left:0}#toastContainer{left:12px;right:12px;bottom:15px}.toast{min-width:0;max-width:none;width:100%}}
+/* Keep the board centered while the actions panel overlays from the right. */
+.sidebar{inset:0 0 0 auto;transform:translateX(100%);opacity:0;pointer-events:none;border-right:0;border-left:1px solid var(--border);box-shadow:-10px 0 30px #0004}
+.sidebar.open{transform:translateX(0);opacity:1;pointer-events:auto}
+header,#app{margin-left:0}
+body.sidebar-collapsed .sidebar{transform:translateX(100%);opacity:0;pointer-events:none}
+.presentation-mode #app{margin-left:auto}
+@media(max-width:600px){.sidebar{inset:0 0 0 auto;width:250px;transform:translateX(100%);box-shadow:-10px 0 30px #0004}.sidebar.open{transform:translateX(0);opacity:1;pointer-events:auto}}
+</style>
+</head>
+<body>
+<div id="toastContainer" aria-live="polite" aria-atomic="true"></div>
+<aside class="sidebar" id="sidebar"><button class="sidebar-close icon-button" onclick="toggleSidebar()" aria-label="Close menu"><i data-lucide="x"></i></button><div class="sidebar-heading">Actions</div><button onclick="addTier()"><i data-lucide="plus"></i><span>Tier</span></button><button onclick="toggleSettings()"><i data-lucide="sliders-horizontal"></i><span>Tiers</span></button><button onclick="shufflePool()"><i data-lucide="shuffle"></i><span>Shuffle</span></button><button onclick="togglePresentation()" id="presentationButton"><i data-lucide="presentation"></i><span>Present</span></button><button onclick="copyImageToClipboard()"><i data-lucide="copy"></i><span>Copy image</span></button><button onclick="exportList()"><i data-lucide="save"></i><span>Save</span></button><button onclick="importList()"><i data-lucide="upload"></i><span>Import</span></button><button onclick="resetList()"><i data-lucide="rotate-ccw"></i><span>Reset</span></button></aside>
+<header><h1>🏆 Custom Tier List</h1><button class="icon-button" onclick="toggleTheme()" id="themeButton" title="Toggle theme" aria-label="Toggle theme"><i data-lucide="sun"></i></button><button class="icon-button" onclick="exportImage()" id="downloadButton" title="Download image" aria-label="Download image"><i data-lucide="download"></i></button><button class="sidebar-toggle icon-button" onclick="toggleSidebar()" aria-label="Open actions" title="Toggle sidebar"><i data-lucide="menu"></i></button></header>
+<div id="app">
+<div class="toolbar"><input id="title" placeholder="Tier list title" value="My Tier List"><span class="status" id="status">Saved locally</span></div>
+<div class="settings" id="settings"><strong>Tier settings</strong><div id="tierSettings"></div><button onclick="addTier()">＋ Add tier</button><div class="setting-group"><strong>Card shape</strong><select id="shapeSelector"><option value="landscape">▭ Landscape</option><option value="square">□ Square</option><option value="portrait">▯ Portrait</option><option value="circle">○ Circle</option></select><span class="hint">New items use this shape.</span></div><div class="setting-group"><strong>Board background</strong><select id="backgroundType" onchange="changeBackgroundType(this.value)"><option value="solid">Solid</option><option value="gradient">Gradient</option><option value="image">Image</option></select><input id="backgroundColor" type="color" value="#101318" onchange="changeBackgroundColor(this.value)"><select id="gradientSelector" onchange="setGradient(this.value)"><option value="linear-gradient(135deg,#111827,#1e3a8a)">Blue</option><option value="linear-gradient(135deg,#111827,#581c87)">Purple</option><option value="linear-gradient(135deg,#172554,#164e63)">Ocean</option><option value="linear-gradient(135deg,#1c1917,#7c2d12)">Sunset</option></select><input id="backgroundImage" type="file" accept="image/*" onchange="changeBackgroundImage(this.files[0])"></div></div>
+<div id="tiers"></div>
+<div class="pool" id="pool"><div class="empty">Your unranked items will appear here.</div></div>
+<div class="item-input"><input id="itemName" placeholder="Item name (optional)"><input id="itemUrl" placeholder="Image URL (optional)" style="min-width:260px"><input id="itemFile" type="file" accept="image/*" multiple title="Upload one or more images"><button onclick="addItem()">Add item(s)</button></div>
+<div class="hint">Drag items between tiers. Names are optional: uploaded files use their filename. Double-click an item to rename it.</div>
+</div>
+<script src="https://unpkg.com/lucide@latest"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="config.js"></script>
+<script>
+const SUPABASE_URL=(window.APP_CONFIG&&window.APP_CONFIG.supabaseUrl||"").replace(/\/rest\/v1\/?$/i,"");
+const SUPABASE_KEY=window.APP_CONFIG&&window.APP_CONFIG.supabaseKey||"";
+if(!SUPABASE_URL||!SUPABASE_KEY)console.error("Missing Supabase configuration. Generate config.js from .env before deploying.");
+const supabaseClient=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+const STORAGE_BUCKET="tier-images";
+const ALLOWED_IMAGE_TYPES=["image/jpeg","image/png","image/webp","image/gif"];
+const MAX_FILE_SIZE=5*1024*1024;
+const MAX_IMAGE_DIMENSION=4096;
+const MAX_IMAGES=100;
+const defaultTiers=[
+ {name:"S+",color:"#ff5b5b"},{name:"S",color:"#ff8c42"},{name:"A",color:"#ffc857"},
+ {name:"B",color:"#8bd17c"},{name:"C",color:"#63c5da"},{name:"D",color:"#8d8dff"},
+ {name:"F",color:"#b66dff"}];
+let data=loadData();
+let dragged=null;
+function showError(message){
+  const container=document.getElementById("toastContainer");
+  const toast=document.createElement("div");
+  toast.className="toast";
+  toast.textContent=message;
+  container.appendChild(toast);
+  setTimeout(()=>{toast.classList.add("hide");setTimeout(()=>toast.remove(),200)},3500);
+}
+function loadData(){
+  const fallback={title:"My Tier List",tiers:defaultTiers.map(x=>({...x})),items:[],background:{type:"solid",value:""}};
+  try{
+    const saved=JSON.parse(localStorage.getItem("tierlist")||"null");
+    if(!saved||!Array.isArray(saved.tiers)||!Array.isArray(saved.items))return fallback;
+    saved.items.forEach(item=>{if(!item.shape)item.shape="landscape"});
+    saved.background=saved.background||{type:"solid",value:""};
+    return saved;
+  }catch(e){return fallback}
+}
+function save(){
+  try{
+    localStorage.setItem("tierlist",JSON.stringify(data));document.getElementById("status").textContent="Saved locally";
+  }catch(e){
+    console.error(e);
+    document.getElementById("status").textContent="Not saved: storage full";showError("Could not save the tier list. Try smaller images or remove some items, then export a backup.");
+  }
+}
+function render(){
+ document.getElementById("title").value=data.title;
+ const t=document.getElementById("tiers");t.innerHTML="";
+ data.tiers.forEach((tier,i)=>{
+  const row=document.createElement("div");row.className="tier";row.dataset.tier=i;
+  const lab=document.createElement("div");lab.className="label";lab.textContent=tier.name;lab.style.background=tier.color;
+  lab.ondblclick=()=>{let n=prompt("Tier name:",tier.name);if(n!==null&&n.trim()){tier.name=n.trim();save();render()}};
+  const area=document.createElement("div");area.className="items";
+  area.ondragover=e=>{e.preventDefault();area.classList.add("drop-target")};
+  area.ondragleave=()=>area.classList.remove("drop-target");
+  area.ondrop=()=>{area.classList.remove("drop-target");moveItem(i,area)};
+  data.items.filter(x=>x.tier===i).forEach(x=>area.appendChild(card(x)));
+  row.append(lab,area);t.appendChild(row);
+ });
+ const p=document.getElementById("pool");p.innerHTML="";
+ p.ondragover=e=>{e.preventDefault();p.classList.add("drop-target")};
+ p.ondragleave=()=>p.classList.remove("drop-target");
+ p.ondrop=()=>{p.classList.remove("drop-target");moveItem(null,p)};
+ if(!data.items.some(x=>x.tier===null)){p.innerHTML='<div class="empty">Your unranked items will appear here.</div>'}
+ data.items.filter(x=>x.tier===null).forEach(x=>p.appendChild(card(x)));
+ renderSettings();
+}
+function card(x){
+ const c=document.createElement("div");c.className=`card ${x.shape||"landscape"}`+(x.img?"":" no-image");c.draggable=true;c.dataset.id=x.id;
+ c.ondragstart=()=>dragged=x.id;c.ondblclick=()=>{let n=prompt("Item name:",x.name);if(n!==null){x.name=n;save();render()}};
+ if(x.img){let im=document.createElement("img");im.src=x.img;im.onerror=()=>im.style.display="none";c.appendChild(im)}
+ const removeButton=document.createElement("button");removeButton.className="card-remove";removeButton.type="button";removeButton.textContent="×";removeButton.title="Remove item";removeButton.setAttribute("aria-label",`Remove ${x.name||"item"}`);removeButton.draggable=false;removeButton.onclick=e=>{e.stopPropagation();removeItem(x.id)};c.appendChild(removeButton);
+ if(x.name&&x.name.trim()){const s=document.createElement("span");s.textContent=x.name;c.appendChild(s)}return c;
+}
+function moveItem(tier,area){let x=data.items.find(x=>x.id===dragged);if(!x||!area){dragged=null;return}const cardElement=document.querySelector(`.card[data-id="${dragged}"]`);x.tier=tier;if(cardElement){area.appendChild(cardElement);requestAnimationFrame(()=>{cardElement.classList.remove("drop-animation");requestAnimationFrame(()=>cardElement.classList.add("drop-animation"))})}save();dragged=null}
+function removeItem(id){const index=data.items.findIndex(item=>item.id===id);if(index<0)return;const [item]=data.items.splice(index,1);save();render();removeStoredImage(item.img)}
+async function removeStoredImage(imageUrl){if(!imageUrl||!imageUrl.startsWith(`${SUPABASE_URL}/storage/v1/object/public/${STORAGE_BUCKET}/`))return;const path=imageUrl.split(`/storage/v1/object/public/${STORAGE_BUCKET}/`)[1];if(path)await removeUploadedImages([decodeURIComponent(path)])}
+async function addItem(){
+  let n=document.getElementById("itemName").value.trim();
+  const urlInput=document.getElementById("itemUrl");
+  const fileInput=document.getElementById("itemFile");
+  let img=urlInput.value.trim();
+  const files=[...(fileInput.files||[])];
+  if(!n&&!img&&!files.length){showError("Add an image, URL, or item name first.");return}
+  if(files.length&&data.items.length+files.length>MAX_IMAGES){showError(`You can have a maximum of ${MAX_IMAGES} items.`);return}
+  if(!files.length&&data.items.length>=MAX_IMAGES){showError(`You can have a maximum of ${MAX_IMAGES} items.`);return}
+  if(img){
+    const urlError=validateImageUrl(img);
+    if(urlError){showError(urlError);return}
+    const dimensionError=await checkImageDimensions(img);
+    if(dimensionError){showError(dimensionError);return}
+  }
+  const uploadedPaths=[];
+  const newItems=[];
+  try{
+    for(const file of files){
+      const validationError=validateImageFile(file);
+      if(validationError){throw Error(validationError)}
+      const dimensionError=await checkImageDimensions(file);
+      if(dimensionError){throw Error(`${file.name}: ${dimensionError}`)}
+      const path=await uploadImage(file);
+      uploadedPaths.push(path);
+      newItems.push({id:createId(),name:n,img:publicImageUrl(path),tier:null,shape:getSelectedShape()});
+    }
+    if(!files.length)newItems.push({id:createId(),name:n,img,tier:null,shape:getSelectedShape()});
+  }catch(error){
+    if(uploadedPaths.length)await removeUploadedImages(uploadedPaths);
+    showError(error.message||"Could not add the item.");
+    return;
+  }
+  data.items.push(...newItems);
+  document.getElementById("itemName").value="";
+  document.getElementById("itemUrl").value="";
+  fileInput.value="";
+  save();
+  render();
+}
+function createId(){return crypto.randomUUID?crypto.randomUUID():Date.now()+Math.random()}
+function validateImageFile(file){
+  if(!ALLOWED_IMAGE_TYPES.includes(file.type))return "Only JPG, PNG, WebP and GIF images are allowed.";
+  if(file.size>MAX_FILE_SIZE)return `${file.name} is larger than 5 MB.`;
+  if(file.size===0)return `${file.name} is empty.`;
+  return null;
+}
+function validateImageUrl(value){
+  try{
+    const url=new URL(value);
+    if(url.protocol!=="https:")return "Image URLs must use HTTPS.";
+    return null;
+  }catch(e){return "Please enter a valid HTTPS image URL."}
+}
+function checkImageDimensions(source){
+  return new Promise(resolve=>{
+    const image=new Image();
+    const objectUrl=source instanceof File?URL.createObjectURL(source):null;
+    image.onload=()=>{
+      if(objectUrl)URL.revokeObjectURL(objectUrl);
+      resolve(image.width>MAX_IMAGE_DIMENSION||image.height>MAX_IMAGE_DIMENSION?`Image dimensions cannot exceed ${MAX_IMAGE_DIMENSION} x ${MAX_IMAGE_DIMENSION}.`:null);
+    };
+    image.onerror=()=>{if(objectUrl)URL.revokeObjectURL(objectUrl);resolve("This file or URL is not a valid image.")};
+    image.src=objectUrl||source;
+  });
+}
+async function uploadImage(file){
+  const extension=(file.name.split(".").pop()||"img").toLowerCase().replace(/[^a-z0-9]/g,"")||"img";
+  const path=`${createId()}.${extension}`;
+  const {error}=await supabaseClient.storage.from(STORAGE_BUCKET).upload(path,file,{contentType:file.type,upsert:false});
+  if(error)throw Error(`Upload failed for ${file.name}: ${error.message}`);
+  return path;
+}
+function publicImageUrl(path){return supabaseClient.storage.from(STORAGE_BUCKET).getPublicUrl(path).data.publicUrl}
+async function removeUploadedImages(paths){
+  const {error}=await supabaseClient.storage.from(STORAGE_BUCKET).remove(paths);
+  if(error)console.error("Could not clean up uploaded images",error);
+}
+function addTier(){let n=prompt("New tier name:","New");if(n===null||!n.trim())return;data.tiers.push({name:n.trim(),color:"#777777"});save();render()}
+function getSelectedShape(){const shape=document.getElementById("shapeSelector").value;return ["square","landscape","portrait","circle"].includes(shape)?shape:"landscape"}
+function renderSettings(){document.getElementById("tierSettings").innerHTML=data.tiers.map((tier,i)=>`<div class="tier-setting"><input value="${escapeHtml(tier.name)}" aria-label="Tier name" onchange="updateTier(${i},'name',this.value)"><input type="color" value="${validColor(tier.color)?tier.color:'#777777'}" aria-label="Tier color" onchange="updateTier(${i},'color',this.value)"><button class="remove-tier" onclick="removeTier(${i})" title="Remove tier">×</button></div>`).join("");const background=data.background||{type:"solid",value:""};document.getElementById("backgroundType").value=background.type;document.getElementById("backgroundColor").value=validColor(background.value)?background.value:"#101318";document.getElementById("gradientSelector").value=background.type==="gradient"?background.value:"linear-gradient(135deg,#111827,#1e3a8a)";document.getElementById("backgroundImage").disabled=background.type!=="image";document.getElementById("backgroundColor").disabled=background.type!=="solid";document.getElementById("gradientSelector").disabled=background.type!=="gradient"}
+function updateTier(i,key,value){if(key==='name'&&!value.trim())return;data.tiers[i][key]=value.trim?value.trim():value;data.items.forEach(item=>{if(item.tier>=data.tiers.length)item.tier=null});save();render()}
+function removeTier(i){if(data.tiers.length<=1)return;data.tiers.splice(i,1);data.items.forEach(item=>{if(item.tier===i)item.tier=null;else if(item.tier>i)item.tier--});save();render()}
+function validColor(value){return /^#[0-9a-f]{6}$/i.test(value||"")}
+function escapeHtml(value){return String(value).replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[char]))}
+function toggleSettings(){document.getElementById("settings").classList.toggle("open")}
+function toggleTheme(){document.body.classList.toggle("light");localStorage.setItem("tierTheme",document.body.classList.contains("light")?"light":"dark");updateThemeButton()}
+function renderIcons(){if(window.lucide)lucide.createIcons()}
+function updateThemeButton(){const button=document.getElementById("themeButton");const light=document.body.classList.contains("light");button.innerHTML=`<i data-lucide="${light?"moon":"sun"}"></i>`;button.title=light?"Switch to dark mode":"Switch to light mode";renderIcons()}
+function toggleSidebar(){const sidebar=document.getElementById("sidebar");const button=document.querySelector(".sidebar-toggle");const open=sidebar.classList.toggle("open");button.innerHTML=`<i data-lucide="${open?"x":"menu"}"></i>`;button.setAttribute("aria-label",open?"Close actions":"Open actions");button.title=open?"Close sidebar":"Open sidebar";renderIcons()}
+function togglePresentation(){const active=document.body.classList.toggle("presentation-mode");const button=document.getElementById("presentationButton");button.innerHTML=active?'<i data-lucide="x"></i><span>Exit</span>':'<i data-lucide="presentation"></i><span>Present</span>';renderIcons();if(active)document.getElementById("sidebar").classList.remove("open")}
+function shufflePool(){const poolItems=data.items.filter(item=>item.tier===null);for(let i=poolItems.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[poolItems[i],poolItems[j]]=[poolItems[j],poolItems[i]]}save();render()}
+function changeBackgroundType(type){data.background=data.background||{};data.background.type=type;if(type==="solid"&&!validColor(data.background.value))data.background.value="#101318";if(type==="gradient"&&!String(data.background.value).startsWith("linear-gradient"))data.background.value="linear-gradient(135deg,#111827,#1e3a8a)";applyBoardBackground();save();renderSettings()}
+function changeBackgroundColor(color){data.background={type:"solid",value:validColor(color)?color:"#101318"};applyBoardBackground();save();renderSettings()}
+function setGradient(value){data.background={type:"gradient",value};applyBoardBackground();save();renderSettings()}
+async function changeBackgroundImage(file){if(!file)return;const validationError=validateImageFile(file);if(validationError){showError(validationError);return}const dimensionError=await checkImageDimensions(file);if(dimensionError){showError(dimensionError);return}try{const path=await uploadImage(file);data.background={type:"image",value:publicImageUrl(path)};applyBoardBackground();save();renderSettings()}catch(error){showError(error.message||"Could not upload the background image.")}}
+function applyBoardBackground(){const app=document.getElementById("app");const background=data.background||{};app.classList.toggle("board-background-image",background.type==="image"&&!!background.value);app.style.background=background.type==="solid"?background.value||"":background.type==="gradient"?background.value||"linear-gradient(135deg,#111827,#1e3a8a)":background.type==="image"&&background.value?`url("${background.value}") center/cover fixed`:""}
+document.addEventListener("keydown",e=>{if(e.key==="Escape"){document.body.classList.remove("presentation-mode");document.getElementById("presentationButton").innerHTML='<i data-lucide="presentation"></i><span>Present</span>';document.getElementById("sidebar").classList.remove("open");renderIcons()}})
+function resetList(){if(confirm("Reset the entire list?")){localStorage.removeItem("tierlist");location.reload()}}
+async function createExportCanvas(){
+  data.title=document.getElementById("title").value||"My Tier List";
+  const scale=2, padding=24, labelWidth=110, cardWidth=116, cardHeight=100, gap=10;
+  const rows=data.tiers.map((tier,tierIndex)=>({tier,items:data.items.filter(item=>item.tier===tierIndex)}));
+  rows.push({tier:{name:"Unranked",color:"#687386"},items:data.items.filter(item=>item.tier===null)});
+  const cardsPerRow=Math.max(1,Math.floor((Math.max(720,window.innerWidth)-padding*2-labelWidth)/cardWidth));
+  const rowHeights=rows.map(row=>Math.max(cardHeight+gap*2,Math.ceil(Math.max(1,row.items.length)/cardsPerRow)*(cardHeight+gap)+gap));
+  const width=Math.max(720,Math.min(1400,window.innerWidth))-padding*2;
+  const height=84+rowHeights.reduce((sum,rowHeight)=>sum+rowHeight+gap,0)+padding;
+  const canvas=document.createElement("canvas");canvas.width=width*scale;canvas.height=height*scale;
+  const context=canvas.getContext("2d");context.scale(scale,scale);
+  const styles=getComputedStyle(document.body);context.fillStyle=styles.getPropertyValue("--bg").trim()||"#101318";context.fillRect(0,0,width,height);
+  context.fillStyle=styles.getPropertyValue("--text").trim()||"#f3f6fb";context.font="700 28px sans-serif";context.fillText(data.title,padding,padding+30);
+  context.font="14px sans-serif";context.fillStyle=styles.getPropertyValue("--muted").trim()||"#9ba8ba";context.fillText("Custom tier list",padding,padding+54);
+  let y=84;
+  for(let rowIndex=0;rowIndex<rows.length;rowIndex++){
+    const row=rows[rowIndex];context.fillStyle=styles.getPropertyValue("--surface").trim()||"#191e26";context.fillRect(padding,y,width,rowHeights[rowIndex]);
+    context.fillStyle=row.tier.color;context.fillRect(padding,y,labelWidth,rowHeights[rowIndex]);
+    context.fillStyle="#ffffff";context.font="700 20px sans-serif";context.textAlign="center";context.fillText(row.tier.name,padding+labelWidth/2,y+rowHeights[rowIndex]/2+7);context.textAlign="left";
+    for(let itemIndex=0;itemIndex<row.items.length;itemIndex++){
+      const item=row.items[itemIndex], x=padding+labelWidth+gap+(itemIndex%cardsPerRow)*cardWidth, itemY=y+gap+Math.floor(itemIndex/cardsPerRow)*(cardHeight+gap);
+      context.fillStyle=styles.getPropertyValue("--surface-2").trim()||"#222936";context.fillRect(x,itemY,cardWidth-gap,cardHeight);
+      const labelHeight=item.name&&item.name.trim()?26:0;
+      if(item.img){const image=await loadExportImage(item.img);if(image){const ratio=Math.min((cardWidth-gap)/image.width,(cardHeight-labelHeight)/image.height), imageWidth=image.width*ratio, imageHeight=image.height*ratio;context.drawImage(image,x+(cardWidth-gap-imageWidth)/2,itemY+(cardHeight-labelHeight-imageHeight)/2,imageWidth,imageHeight)}}
+      if(labelHeight){context.fillStyle="#000000b3";context.fillRect(x,itemY+cardHeight-labelHeight,cardWidth-gap,labelHeight);context.fillStyle="#ffffff";context.font="12px sans-serif";context.fillText(item.name,x+6,itemY+cardHeight-9)}
+    }
+    y+=rowHeights[rowIndex]+gap;
+  }
+  return canvas;
+}
+async function exportImage(){
+  try{
+    const canvas=await createExportCanvas();
+    const link=document.createElement("a");
+    link.download=(data.title||"tier-list").replace(/[^a-z0-9]+/gi,"-").replace(/^-|-$/g,"").toLowerCase()+".png";
+    link.href=canvas.toDataURL("image/png");
+    link.click();
+    document.getElementById("status").textContent="Image downloaded";
+  }catch(error){console.error(error);document.getElementById("status").textContent="Image download failed";showError("The image could not be exported.")}
+}
+async function copyImageToClipboard(){
+  if(!navigator.clipboard||!window.ClipboardItem){showError("Image copying is not supported in this browser.");return}
+  try{
+    const canvas=await createExportCanvas();
+    const blob=await new Promise(resolve=>canvas.toBlob(resolve,"image/png"));
+    if(!blob)throw Error("Canvas conversion failed");
+    await navigator.clipboard.write([new ClipboardItem({"image/png":blob})]);
+    document.getElementById("status").textContent="Image copied";
+  }catch(error){console.error(error);document.getElementById("status").textContent="Copy failed";showError("Could not copy the image. Make sure the page is running in a secure context such as HTTPS.")}
+}
+function loadExportImage(source){return new Promise(resolve=>{const image=new Image();image.crossOrigin="anonymous";image.onload=()=>resolve(image);image.onerror=()=>resolve(null);image.src=source})}
+function exportList(){data.title=document.getElementById("title").value||"My Tier List";save();let blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"});let a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="tier-list.json";a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}
+function importList(){let input=document.createElement("input");input.type="file";input.accept="application/json";input.onchange=()=>{let file=input.files[0];if(!file)return;let reader=new FileReader();reader.onload=()=>{try{let imported=JSON.parse(reader.result);if(!imported||!Array.isArray(imported.tiers)||!Array.isArray(imported.items))throw Error();data=imported;data.background=data.background||{type:"solid",value:""};data.items.forEach(item=>{if(!item.shape)item.shape="landscape"});save();render();applyBoardBackground()}catch(e){showError("That file is not a valid tier list backup.")}};reader.readAsText(file)};input.click()}
+document.getElementById("title").oninput=()=>{data.title=document.getElementById("title").value;save()};
+if(localStorage.getItem("tierTheme")==="light")document.body.classList.add("light");updateThemeButton();
+render();
+applyBoardBackground();
+renderIcons();
+</script>
+</body>
+</html>
