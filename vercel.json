@@ -1,0 +1,9 @@
+{
+  "buildCommand": "node generate-config.mjs",
+  "rewrites": [
+    {
+      "source": "/",
+      "destination": "/custom_tier_list_fixed.html"
+    }
+  ]
+}
