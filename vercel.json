@@ -1,5 +1,6 @@
 {
   "buildCommand": "node generate-config.mjs",
+  "outputDirectory": ".",
   "rewrites": [
     {
       "source": "/",
